@@ -1,0 +1,3 @@
+# ADR-0004: Platform / Auth as Infrastructure, Not a Bounded Context
+
+Shared platform services (authentication, user profiles, notifications, internal messaging, activity log, search) are organized as a Laravel module called `Platform` but treated as infrastructure, not a bounded context with its own domain language. These services provide generic capabilities consumed by all other modules — no hospital-specific business logic lives here. The exception is notification *types* which are defined by each bounded context (BPR defines "appointment reminder", LIS defines "results ready"); Platform/Notification is only the delivery channel. This keeps the domain logic in the contexts that understand it and avoids creating a catch-all context with blurred boundaries.

@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class AuditLog extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'action',
+        'entity_type',
+        'entity_id',
+        'old_values',
+        'new_values',
+        'ip_address',
+        'user_agent',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'old_values' => 'array',
+            'new_values' => 'array',
+        ];
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public static function log(array $data): self
+    {
+        return static::create($data);
+    }
+}

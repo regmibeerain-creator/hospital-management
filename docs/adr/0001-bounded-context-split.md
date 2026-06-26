@@ -1,0 +1,3 @@
+# ADR-0001: Bounded Context Split
+
+The system is split into four bounded contexts — CMS, BPR, LIS, and RIS/PACS — each with its own domain logic, database schema, and API routes. LIS and RIS/PACS are separate contexts from BPR because lab and radiology workflows have deep domain complexity, distinct data models, and different lifecycle rules that would make a unified model unwieldy. CMS is separate because public-facing content (pages, blogs, SEO) has no overlap with clinical operations. BPR communicates with LIS and RIS/PACS via asynchronous events (Laravel queue), not synchronous HTTP, to avoid coupling uptime and latency of specialized systems to front-desk operations.

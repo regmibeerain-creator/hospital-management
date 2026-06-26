@@ -1,0 +1,3 @@
+# ADR-0002: User / Staff / Patient Identity Model
+
+A User is a login account (email + password). A Staff record represents a hospital employee. A Patient record represents a person receiving care. The `users` table has nullable foreign keys `staff_id` and `patient_id`, allowing a single User to link to both (a doctor who is also a patient) or just one (a patient with a portal account who is not staff). Patient identity exists independently of any User account — registration at the front desk creates a Patient record without requiring portal access. This avoids forcing every patient to create an account and allows staff to register patients on their behalf.

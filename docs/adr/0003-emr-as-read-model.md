@@ -1,0 +1,3 @@
+# ADR-0003: EMR as Read Model, Not a Bounded Context
+
+The Electronic Medical Record (EMR) is not a separate bounded context with its own write path. It is a read model projected from data owned by other contexts: Consultation notes (BPR), lab results (LIS), radiology reports (RIS/PACS), pharmacy dispense history (BPR), and nursing observations (BPR). The Patient identity is the key that assembles these fragments. There is no "EMR service" with domain logic — the EMR is what you get when you query across contexts. This avoids duplicating writes and keeps each context the single source of truth for its domain data.
