@@ -53,49 +53,86 @@ export default function PublicHomePage() {
     return (
         <div className={`min-h-screen transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
             {/* Navigation */}
-            <nav className="bg-white border-b border-gray-100">
+            <nav className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">{profile?.hospital_name?.charAt(0) || 'H'}</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-1 overflow-hidden ring-1 ring-blue-100">
+                                <img src="/images/logo.png" alt="Hospital Logo" className="w-full h-full object-contain rounded" />
                             </div>
-                            <span className="font-semibold text-gray-900">{profile?.hospital_name || 'Hospital'}</span>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-gray-900 leading-tight">{profile?.hospital_name || 'Birendranagar Municipal Hospital'}</span>
+                                <span className="text-[11px] text-gray-400 leading-tight">सुर्खेत, नेपाल</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-6">
-                            <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">Home</Link>
-                            <Link to="/website/blog" className="text-sm text-gray-600 hover:text-gray-900">Blog</Link>
-                            <Link to="/website/faq" className="text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
-                            <Link to="/website/contact" className="text-sm text-gray-600 hover:text-gray-900">Contact</Link>
-                            <Link to="/website/health-packages" className="text-sm text-gray-600 hover:text-gray-900">Packages</Link>
-                            <Link to="/login" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Login</Link>
+                        <div className="hidden md:flex items-center gap-8">
+                            <Link to="/" className="text-sm font-medium text-blue-600 border-b-2 border-blue-600 pb-0.5">Home</Link>
+                            <Link to="/website/blog" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Blog</Link>
+                            <Link to="/website/faq" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">FAQ</Link>
+                            <Link to="/website/contact" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Contact</Link>
+                            <Link to="/website/health-packages" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Packages</Link>
+                            <Link
+                                to="/login"
+                                className="inline-flex items-center px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-500 rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md shadow-blue-500/20"
+                            >
+                                Login
+                            </Link>
                         </div>
+                        {/* Mobile menu button */}
+                        <Link
+                            to="/login"
+                            className="md:hidden inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-500 rounded-lg"
+                        >
+                            Login
+                        </Link>
                     </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900 text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <section className="relative text-white overflow-hidden min-h-[600px] flex items-center">
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                    <img
+                        src="/images/hero-bg.png"
+                        alt=""
+                        className="w-full h-full object-cover"
+                    />
+                    {/* Modern gradient overlay for better contrast and visual depth */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-950/85 via-blue-900/70 to-indigo-950/60" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent" />
+                </div>
+
+                {/* Decorative elements */}
+                <div className="absolute top-20 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-10 left-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
                     <div className="max-w-3xl">
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-sm text-blue-200 mb-6">
+                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                            <span>24/7 Emergency Services Available</span>
+                        </div>
+                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
                             {profile?.tagline || 'Your Health, Our Priority'}
                         </h1>
-                        <p className="mt-6 text-lg sm:text-xl text-indigo-100 leading-relaxed max-w-2xl">
+                        <p className="mt-6 text-lg sm:text-xl text-blue-100 leading-relaxed max-w-2xl">
                             We provide comprehensive healthcare services with state-of-the-art facilities,
                             experienced doctors, and compassionate care. Your well-being is at the heart of everything we do.
                         </p>
                         <div className="mt-10 flex flex-wrap gap-4">
                             <Link
-to="/website/contact"
-                                className="inline-flex items-center px-6 py-3 bg-white text-indigo-700 font-medium rounded-xl hover:bg-indigo-50 transition-colors shadow-lg"
+                                to="/website/contact"
+                                className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-all shadow-xl shadow-black/10 hover:shadow-2xl hover:-translate-y-0.5"
                             >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 Book Appointment
                             </Link>
                             <Link
-to="/website/health-packages"
-                                className="inline-flex items-center px-6 py-3 bg-indigo-500 text-white font-medium rounded-xl hover:bg-indigo-400 transition-colors border border-indigo-400"
+                                to="/website/health-packages"
+                                className="inline-flex items-center gap-2 px-6 py-3.5 bg-blue-500/20 backdrop-blur-sm text-white font-semibold rounded-xl hover:bg-blue-500/30 transition-all border border-white/20 hover:border-white/30"
                             >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 View Health Packages
                             </Link>
                         </div>
@@ -241,7 +278,7 @@ to="/website/health-packages"
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div>
-                            <h3 className="text-white font-semibold">{profile?.hospital_name || 'Hospital'}</h3>
+                            <h3 className="text-white font-semibold">{profile?.hospital_name || 'Birendranagar Municipal Hospital'}</h3>
                             <p className="mt-2 text-sm">Providing quality healthcare services since 2020.</p>
                         </div>
                         <div>
@@ -256,14 +293,34 @@ to="/website/health-packages"
                         <div>
                             <h3 className="text-white font-semibold">Contact</h3>
                             <ul className="mt-2 space-y-2 text-sm">
-                                <li>{profile?.address || 'Kathmandu, Nepal'}</li>
-                                <li>{profile?.phone || '+977-1-4XXXXXX'}</li>
-                                <li>{profile?.email || 'info@hospital.com'}</li>
+                                <li className="flex items-center gap-2"><span>📍</span> Katkuwa, Birendranagar Municipality-7, Surkhet, Nepal</li>
+                                <li className="flex items-center gap-2"><span>📞</span> +977-83-524403</li>
+                                <li className="flex items-center gap-2"><span>🚑</span> Ambulance: 9745502222</li>
+                                <li className="flex items-center gap-2"><span>✉️</span> info@birendranagarmun.gov.np</li>
                             </ul>
                         </div>
                     </div>
-                    <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm">
-                        &copy; {new Date().getFullYear()} {profile?.hospital_name || 'Hospital'}. All rights reserved.
+                    <div className="mt-8 pt-8 border-t border-gray-800">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <p className="text-sm">
+                                &copy; {new Date().getFullYear()} {profile?.hospital_name || 'Birendranagar Municipal Hospital'}. All rights reserved.
+                            </p>
+                            <div className="flex items-center gap-4">
+                                <a
+                                    href="https://www.facebook.com/nagarhospitalskt/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="group-hover:underline">Follow us on Facebook</span>
+                                </a>
+                                <span className="text-gray-600">|</span>
+                                <span className="text-xs text-gray-500">Birendranagar NAGAR hospital</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </footer>

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,4 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->render(function (QueryException $e, Request $request) {
+            if ($request->is('api/*') && str_contains($e->getMessage(), 'users_mobile_number_unique')) {
+                return response()->json([
+                    'message' => 'This phone number is already registered.',
+                    'errors' => [
+                        'mobile_number' => ['This phone number is already registered.'],
+                    ],
+                ], 422);
+            }
+        });
     })->create();

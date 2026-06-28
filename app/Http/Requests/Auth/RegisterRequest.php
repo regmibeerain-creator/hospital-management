@@ -16,7 +16,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'mobile_number' => 'nullable|string|max:20',
+            'mobile_number' => 'nullable|string|max:20|unique:users,mobile_number',
             'password' => 'required|string|min:8|confirmed',
         ];
     }
@@ -30,6 +30,7 @@ class RegisterRequest extends FormRequest
             'password.required' => 'A password is required.',
             'password.min' => 'Password must be at least 8 characters.',
             'password.confirmed' => 'Password confirmation does not match.',
+            'mobile_number.unique' => 'This phone number is already registered.',
         ];
     }
 }

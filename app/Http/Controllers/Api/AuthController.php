@@ -342,7 +342,10 @@ class AuthController extends Controller
             ->first()
             ?->update(['logout_at' => Carbon::now()]);
 
-        $user->currentAccessToken()->delete();
+        $token = $user->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         AuditLog::log([
             'user_id' => $user->id,

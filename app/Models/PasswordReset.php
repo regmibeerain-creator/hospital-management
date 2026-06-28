@@ -33,14 +33,14 @@ class PasswordReset extends Model
     public function isValid(): bool
     {
         return $this->used_at === null
-            && $this->status === 'pending'
+            && in_array($this->status, ['pending', 'otp_verified'])
             && Carbon::now()->lt($this->expires_at);
     }
 
     public function scopeValid($query)
     {
         return $query->whereNull('used_at')
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'otp_verified'])
             ->where('expires_at', '>', Carbon::now());
     }
 }

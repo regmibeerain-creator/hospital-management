@@ -92,9 +92,8 @@ export default function BlogList() {
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {posts.map((post) => (
                             <Link
-                                key={post.id}
-                                to={`/blog/${post.slug}`}
-                                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group"
+                                key={post.id}                                        to={`/website/blog/${post.slug}`}
+                                        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group"
                             >
                                 <div className="h-48 bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center">
                                     {post.featured_image ? (

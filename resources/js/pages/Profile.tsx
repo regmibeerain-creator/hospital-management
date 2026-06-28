@@ -1,252 +1,274 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../lib/api';
+import { User, Camera, Loader2, Save, Lock } from 'lucide-react';
 
 export default function Profile() {
-    const { user, updateProfile, changePassword } = useAuth();
-    const [name, setName] = useState(user?.name || '');
-    const [mobileNumber, setMobileNumber] = useState(user?.mobile_number || '');
-    const [avatar, setAvatar] = useState<File | null>(null);
+    const { user, setUser } = useAuth();
+    const [form, setForm] = useState({
+        name: user?.name || '',
+        mobile_number: user?.mobile_number || '',
+    });
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
 
-    const [pwForm, setPwForm] = useState({
+    // Password change
+    const [passwordForm, setPasswordForm] = useState({
         current_password: '',
         new_password: '',
         new_password_confirmation: '',
     });
-    const [pwSaving, setPwSaving] = useState(false);
-    const [pwMessage, setPwMessage] = useState('');
-    const [pwError, setPwError] = useState('');
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState('');
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setAvatar(file);
-            setAvatarPreview(URL.createObjectURL(file));
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onload = () => setAvatarPreview(reader.result as string);
+            reader.readAsDataURL(file);
         }
     };
 
-    const handleProfileSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         setMessage('');
-        setError('');
-
         try {
-            const formData = new FormData();
-            formData.append('name', name);
-            if (mobileNumber) formData.append('mobile_number', mobileNumber);
-            if (avatar) formData.append('avatar', avatar);
-
-            await updateProfile(formData);
+            let response;
+            if (avatarFile) {
+                const formData = new FormData();
+                formData.append('name', form.name);
+                formData.append('mobile_number', form.mobile_number);
+                formData.append('avatar', avatarFile);
+                response = await api.post('/profile', formData);
+            } else {
+                response = await api.post('/profile', {
+                    name: form.name,
+                    mobile_number: form.mobile_number,
+                });
+            }
+            setUser(response.data.user || response.data);
             setMessage('Profile updated successfully.');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update profile.');
+            setAvatarFile(null);
+            setAvatarPreview(null);
+        } catch {
+            setMessage('Failed to update profile.');
         } finally {
             setSaving(false);
         }
     };
 
-    const handlePasswordSubmit = async (e: React.FormEvent) => {
+    const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
-        setPwSaving(true);
-        setPwMessage('');
-        setPwError('');
-
-        if (pwForm.new_password !== pwForm.new_password_confirmation) {
-            setPwError('Passwords do not match.');
-            setPwSaving(false);
+        if (passwordForm.new_password !== passwordForm.new_password_confirmation) {
+            setPasswordMessage('Passwords do not match.');
             return;
         }
-
+        setChangingPassword(true);
+        setPasswordMessage('');
         try {
-            await changePassword(pwForm.current_password, pwForm.new_password, pwForm.new_password_confirmation);
-            setPwMessage('Password changed successfully.');
-            setPwForm({ current_password: '', new_password: '', new_password_confirmation: '' });
+            await api.post('/profile/change-password', {
+                current_password: passwordForm.current_password,
+                new_password: passwordForm.new_password,
+                new_password_confirmation: passwordForm.new_password_confirmation,
+            });
+            setPasswordMessage('Password changed successfully.');
+            setPasswordForm({ current_password: '', new_password: '', new_password_confirmation: '' });
         } catch (err: any) {
-            setPwError(err.response?.data?.message || 'Failed to change password.');
+            setPasswordMessage(err?.response?.data?.message || 'Failed to change password.');
         } finally {
-            setPwSaving(false);
+            setChangingPassword(false);
         }
     };
 
     return (
-        <div className="max-w-3xl mx-auto space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                    Manage your account information and password.
-                </p>
-            </div>
+        <div className="max-w-2xl mx-auto space-y-6 animate-slide-in">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Profile Settings</h1>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
-
-                {message && (
-                    <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3">
-                        {message}
-                    </div>
-                )}
-                {error && (
-                    <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="flex items-center gap-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
-                                {avatarPreview ? (
-                                    <img src={avatarPreview} alt="" className="w-20 h-20 object-cover" />
-                                ) : user?.avatar ? (
-                                    <img src={user.avatar} alt="" className="w-20 h-20 object-cover" />
-                                ) : (
-                                    <span className="text-blue-600 font-bold text-2xl">
-                                        {user?.name?.charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="absolute -bottom-1 -right-1 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50"
-                            >
-                                <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                            </button>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={handleAvatarChange}
-                                className="hidden"
-                            />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                            <p className="text-xs text-gray-500">{user?.email}</p>
-                            {user?.role && (
-                                <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
-                                    {user.role.name}
-                                </span>
+            {/* Profile Info */}
+            <div className="glass-card-solid rounded-2xl p-6">
+                <div className="flex items-center gap-6 mb-6">
+                    {/* Avatar */}
+                    <div className="relative">
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                            {avatarPreview ? (
+                                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : user?.avatar ? (
+                                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-10 h-10" />
                             )}
                         </div>
+                        <label className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-center cursor-pointer hover:bg-[var(--bg-tertiary)] transition-colors shadow-sm">
+                            <Camera className="w-4 h-4 text-[var(--text-secondary)]" />
+                            <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                        </label>
                     </div>
+                    <div>
+                        <h2 className="text-lg font-semibold text-[var(--text-primary)]">{user?.name}</h2>
+                        <p className="text-sm text-[var(--text-muted)]">{user?.email}</p>
+                        {user?.role && (
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                {user.role.name}
+                            </span>
+                        )}
+                    </div>
+                </div>
 
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                                Full Name
+                            </label>
                             <input
                                 type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={form.name}
+                                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Email</label>
-                            <input
-                                type="email"
-                                value={user?.email || ''}
-                                disabled
-                                className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Phone</label>
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                                Mobile Number
+                            </label>
                             <input
                                 type="tel"
-                                value={mobileNumber}
-                                onChange={(e) => setMobileNumber(e.target.value)}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Member Since</label>
-                            <input
-                                type="text"
-                                value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : ''}
-                                disabled
-                                className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                                value={form.mobile_number}
+                                onChange={(e) => setForm((p) => ({ ...p, mobile_number: e.target.value }))}
+                                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        >
-                            {saving ? 'Saving...' : 'Save changes'}
-                        </button>
+                    <div>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            value={user?.email || ''}
+                            disabled
+                            className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-tertiary)] text-[var(--text-muted)] cursor-not-allowed"
+                        />
                     </div>
+
+                    {message && (
+                        <div
+                            className={`p-3 rounded-xl text-sm ${
+                                message.includes('success')
+                                    ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20'
+                                    : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20'
+                            }`}
+                        >
+                            {message}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-white font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {saving ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-4 h-4" />
+                                Save changes
+                            </>
+                        )}
+                    </button>
                 </form>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-
-                {pwMessage && (
-                    <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3">
-                        {pwMessage}
+            {/* Change Password */}
+            <div className="glass-card-solid rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                        <Lock className="w-5 h-5 text-white" />
                     </div>
-                )}
-                {pwError && (
-                    <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
-                        {pwError}
-                    </div>
-                )}
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">Change Password</h2>
+                </div>
 
-                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                            Current Password
+                        </label>
                         <input
                             type="password"
-                            value={pwForm.current_password}
-                            onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })}
+                            value={passwordForm.current_password}
+                            onChange={(e) => setPasswordForm((p) => ({ ...p, current_password: e.target.value }))}
                             required
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
                         />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">New Password</label>
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                                New Password
+                            </label>
                             <input
                                 type="password"
-                                value={pwForm.new_password}
-                                onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })}
+                                value={passwordForm.new_password}
+                                onChange={(e) => setPasswordForm((p) => ({ ...p, new_password: e.target.value }))}
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                minLength={8}
+                                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                                Confirm New Password
+                            </label>
                             <input
                                 type="password"
-                                value={pwForm.new_password_confirmation}
-                                onChange={(e) => setPwForm({ ...pwForm, new_password_confirmation: e.target.value })}
+                                value={passwordForm.new_password_confirmation}
+                                onChange={(e) => setPasswordForm((p) => ({ ...p, new_password_confirmation: e.target.value }))}
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={pwSaving}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+
+                    {passwordMessage && (
+                        <div
+                            className={`p-3 rounded-xl text-sm ${
+                                passwordMessage.includes('success')
+                                    ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20'
+                                    : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20'
+                            }`}
                         >
-                            {pwSaving ? 'Changing...' : 'Change password'}
-                        </button>
-                    </div>
+                            {passwordMessage}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={changingPassword}
+                        className="px-6 py-2.5 rounded-xl border border-[var(--border)] text-[var(--text-primary)] font-medium text-sm hover:bg-[var(--bg-tertiary)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {changingPassword ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Changing...
+                            </>
+                        ) : (
+                            <>
+                                <Lock className="w-4 h-4" />
+                                Change password
+                            </>
+                        )}
+                    </button>
                 </form>
             </div>
         </div>

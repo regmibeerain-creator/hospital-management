@@ -22,7 +22,7 @@ class RegisterTest extends TestCase
         $payload = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'phone' => '1234567890',
+            'mobile_number' => '1234567890',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ];
@@ -35,7 +35,7 @@ class RegisterTest extends TestCase
                     'id',
                     'name',
                     'email',
-                    'phone',
+                    'mobile_number',
                     'avatar',
                     'onboard_status',
                     'email_verified_at',
@@ -49,7 +49,7 @@ class RegisterTest extends TestCase
                 'user' => [
                     'name' => 'John Doe',
                     'email' => 'john@example.com',
-                    'phone' => '1234567890',
+                    'mobile_number' => '1234567890',
                     'onboard_status' => 'pending',
                     'phone_verified_at' => null,
                 ],
@@ -59,7 +59,7 @@ class RegisterTest extends TestCase
         $this->assertDatabaseHas('users', [
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'phone' => '1234567890',
+            'mobile_number' => '1234567890',
             'onboard_status' => 'pending',
         ]);
 
@@ -203,7 +203,7 @@ class RegisterTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'john@example.com',
-            'phone' => null,
+            'mobile_number' => null,
         ]);
     }
 

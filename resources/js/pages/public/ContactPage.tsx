@@ -44,9 +44,10 @@ export default function ContactPage() {
 
                         <div className="mt-8 space-y-6">
                             {[
-                                { icon: '📍', label: 'Address', value: 'Kathmandu, Nepal' },
-                                { icon: '📞', label: 'Phone', value: '+977-1-4XXXXXX' },
-                                { icon: '✉️', label: 'Email', value: 'info@hospital.com' },
+                                { icon: '📍', label: 'Address', value: 'Katkuwa, Birendranagar Municipality-7, Surkhet, Nepal' },
+                                { icon: '📞', label: 'Phone', value: '+977-83-524403' },
+                                { icon: '🚑', label: 'Ambulance', value: '9745502222 (24/7 Emergency)' },
+                                { icon: '✉️', label: 'Email', value: 'info@birendranagarmun.gov.np' },
                                 { icon: '🕐', label: 'Hours', value: '24/7 Emergency Service' },
                             ].map((item) => (
                                 <div key={item.label} className="flex items-start gap-3">

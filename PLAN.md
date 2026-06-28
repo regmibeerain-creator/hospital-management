@@ -1,4 +1,4 @@
-# Implementation Plan: Hospital Management System
+# Implementation Plan: Birendranagar Municipal Hospital
 
 Phased delivery based on the PRD, organized by dependency order. Each phase is a usable vertical slice.
 

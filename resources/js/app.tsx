@@ -15,6 +15,19 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import ModulePage from './pages/dashboard/modules/ModulePage';
 
+// Phase 6: Notifications, Reports & Settings
+import NotificationsPage from './pages/dashboard/NotificationsPage';
+import ReportsPage from './pages/dashboard/ReportsPage';
+import SettingsPage from './pages/dashboard/SettingsPage';
+import AuditLogsPage from './pages/dashboard/AuditLogsPage';
+
+// Patient BPR pages
+import BookAppointment from './pages/patient/BookAppointment';
+import MyAppointments from './pages/patient/MyAppointments';
+import AppointmentDetail from './pages/patient/AppointmentDetail';
+import MedicalReports from './pages/patient/MedicalReports';
+import Prescriptions from './pages/patient/Prescriptions';
+
 // Public CMS pages
 import PublicHomePage from './pages/public/PublicHomePage';
 import BlogList from './pages/public/BlogList';
@@ -33,6 +46,22 @@ import CmsInquiryManager from './pages/admin/CmsInquiryManager';
 import CmsMediaManager from './pages/admin/CmsMediaManager';
 import CmsHealthPackageManager from './pages/admin/CmsHealthPackageManager';
 import CmsHospitalProfile from './pages/admin/CmsHospitalProfile';
+
+// Phase 5: Billing, Insurance & Inventory
+import BillingManager from './pages/admin/BillingManager';
+import InsuranceManager from './pages/admin/InsuranceManager';
+import InventoryManager from './pages/admin/InventoryManager';
+
+// Phase 4: Pharmacy, Laboratory & Radiology
+import PharmacyManager from './pages/admin/PharmacyManager';
+import LaboratoryManager from './pages/admin/LaboratoryManager';
+import RadiologyManager from './pages/admin/RadiologyManager';
+
+// Phase 7: LIS - Laboratory Information System
+import LisManager from './pages/admin/LisManager';
+
+// Phase 8: RIS/PACS - Radiology Information System
+import RisManager from './pages/admin/RisManager';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element not found');
@@ -71,6 +100,38 @@ createRoot(rootElement).render(
                 >
                     <Route index element={<Dashboard />} />
                     <Route path="profile" element={<Profile />} />
+
+                    {/* Patient BPR routes */}
+                    <Route path="appointments/book" element={<BookAppointment />} />
+                    <Route path="appointments/:id" element={<AppointmentDetail />} />
+                    <Route path="appointments" element={<MyAppointments />} />
+                    <Route path="medical-records" element={<MedicalReports />} />
+                    <Route path="lab-reports" element={<MedicalReports />} />
+                    <Route path="radiology-reports" element={<MedicalReports />} />
+                    <Route path="prescriptions" element={<Prescriptions />} />
+
+                    {/* Phase 5: Billing, Insurance & Inventory */}
+                    <Route path="billing" element={<BillingManager />} />
+                    <Route path="insurance" element={<InsuranceManager />} />
+                    <Route path="inventory" element={<InventoryManager />} />
+
+                    {/* Phase 4: Pharmacy, Laboratory & Radiology */}
+                    <Route path="pharmacy" element={<PharmacyManager />} />
+                    <Route path="laboratory" element={<LaboratoryManager />} />
+                    <Route path="radiology" element={<RadiologyManager />} />
+
+                    {/* Phase 6: Notifications, Reports & Settings */}
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path="reports" element={<ReportsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="audit-logs" element={<AuditLogsPage />} />
+
+                    {/* Phase 7: LIS */}
+                    <Route path="lis" element={<LisManager />} />
+
+                    {/* Phase 8: RIS/PACS */}
+                    <Route path="ris" element={<RisManager />} />
+
                     <Route path="*" element={<ModulePage />} />
                 </Route>
 

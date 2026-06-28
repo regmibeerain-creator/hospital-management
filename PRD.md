@@ -1,4 +1,4 @@
-# PRD: Hospital Management System
+# PRD: Birendranagar Municipal Hospital
 
 ## Problem Statement
 
@@ -91,7 +91,7 @@ A single-page application (SPA) integrated healthcare platform delivered as a mo
 ### Monorepo Structure
 
 ```
-hospital-management/
+birendranagar-municipal-hospital/
 ├── backend/                  # Laravel application
 │   ├── app/
 │   │   ├── Modules/

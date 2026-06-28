@@ -147,8 +147,8 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
                 </button>
 
                 <div className="text-center mb-6">
-                    <div className="mx-auto w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-lg">H</span>
+                    <div className="mx-auto w-12 h-12 bg-white rounded-xl flex items-center justify-center p-1 overflow-hidden">
+                        <img src="/images/logo.png" alt="Hospital Logo" className="w-full h-full object-cover" />
                     </div>
                     <h2 className="mt-3 text-xl font-bold text-gray-900">Welcome Back</h2>
                     <p className="mt-1 text-sm text-gray-500">Sign in to your account</p>

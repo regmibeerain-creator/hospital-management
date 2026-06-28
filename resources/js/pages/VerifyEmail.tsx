@@ -1,213 +1,132 @@
-import { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-
-type Step = 'prompt' | 'otp';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import api from '../lib/api';
+import { MailCheck, Loader2, AlertCircle } from 'lucide-react';
 
 export default function VerifyEmail() {
-    const { verifyOtp, resendOtp } = useAuth();
-    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const email = location.state?.email;
-    const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-    const [step, setStep] = useState<Step>('prompt');
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [sending, setSending] = useState(false);
-    const [verifying, setVerifying] = useState(false);
-    const [sent, setSent] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const email = searchParams.get('email') || '';
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
+    const [resending, setResending] = useState(false);
 
     useEffect(() => {
-        if (step === 'otp') {
-            setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        // If there's a signed URL, verify automatically
+        const id = searchParams.get('id');
+        const hash = searchParams.get('hash');
+        const signature = searchParams.get('signature');
+        const expires = searchParams.get('expires');
+
+        if (id && hash && signature && expires) {
+            setStatus('loading');
+            const verifyUrl = `/email/verify/${id}?hash=${hash}&signature=${signature}&expires=${expires}`;
+            api.get(verifyUrl)
+                .then(() => {
+                    setStatus('success');
+                    setMessage('Email verified successfully!');
+                })
+                .catch((err) => {
+                    setStatus('error');
+                    setMessage(err?.response?.data?.message || 'Verification link is invalid or expired.');
+                });
+        } else if (email) {
+            setStatus('idle');
+        } else {
+            setStatus('error');
+            setMessage('No verification information provided.');
         }
-    }, [step]);
-
-    if (!email) {
-        navigate('/login');
-        return null;
-    }
-
-    const handleSendCode = async () => {
-        setSending(true);
-        setError('');
-        try {
-            await resendOtp(email, 'email_verification');
-            setSent(true);
-            setStep('otp');
-            setSuccess('A 6-digit verification code has been sent to your email.');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to send verification code.');
-        } finally {
-            setSending(false);
-        }
-    };
-
-    const handleOtpChange = (index: number, value: string) => {
-        if (value.length > 1) return;
-        const newOtp = [...otp];
-        newOtp[index] = value;
-        setOtp(newOtp);
-
-        if (value && index < 5) {
-            otpRefs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0) {
-            otpRefs.current[index - 1]?.focus();
-        }
-    };
-
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setVerifying(true);
-
-        const code = otp.join('');
-        if (code.length !== 6) {
-            setError('Please enter the complete 6-digit code.');
-            setVerifying(false);
-            return;
-        }
-
-        try {
-            await verifyOtp(email, code, 'email_verification');
-            navigate('/login', {
-                state: { message: 'Email verified successfully! You can now sign in.' },
-            });
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Invalid or expired code.');
-        } finally {
-            setVerifying(false);
-        }
-    };
+    }, []);
 
     const handleResend = async () => {
-        setError('');
-        setSuccess('');
-        setOtp(['', '', '', '', '', '']);
+        setResending(true);
         try {
-            await resendOtp(email, 'email_verification');
-            setSuccess('A new code has been sent to your email.');
+            await api.post('/resend-verification', { email });
+            setMessage('Verification email resent. Please check your inbox.');
+            setStatus('idle');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to resend code.');
+            setMessage(err?.response?.data?.message || 'Failed to resend verification email.');
+        } finally {
+            setResending(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full">
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                    {step === 'prompt' ? (
-                        <div className="text-center">
-                            {/* Mail Icon */}
-                            <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
-                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-
-                            <h2 className="mt-6 text-2xl font-bold text-gray-900">Verify your email</h2>
-                            <p className="mt-3 text-sm text-gray-600 leading-relaxed">
-                                Your email address <strong className="text-gray-900">{email}</strong> has not been verified yet.
-                                We'll send a 6-digit verification code to your email.
-                            </p>
-
-                            {error && (
-                                <div className="mt-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
-                                    {error}
-                                </div>
-                            )}
-
-                            <div className="mt-8 space-y-4">
-                                <button
-                                    onClick={handleSendCode}
-                                    disabled={sending}
-                                    className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {sending ? 'Sending...' : 'Send verification code'}
-                                </button>
-
-                                <Link
-                                    to="/login"
-                                    className="block w-full py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center transition-colors"
-                                >
-                                    Back to login
-                                </Link>
-                            </div>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-blue-950">
+            <div className="w-full max-w-md animate-slide-in text-center">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-[var(--border)]">
+                    {status === 'loading' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                            <p className="text-[var(--text-secondary)]">Verifying your email...</p>
                         </div>
-                    ) : (
-                        <form className="space-y-5" onSubmit={handleVerify}>
-                            <div className="text-center">
-                                <div className="mx-auto w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <h2 className="mt-4 text-xl font-bold text-gray-900">Enter verification code</h2>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    A 6-digit code was sent to <strong>{email}</strong>
-                                </p>
+                    )}
+
+                    {status === 'success' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-500/10 flex items-center justify-center">
+                                <MailCheck className="w-8 h-8 text-green-600 dark:text-green-400" />
                             </div>
-
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
-                                    {error}
-                                </div>
-                            )}
-                            {success && (
-                                <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3">
-                                    {success}
-                                </div>
-                            )}
-
-                            <div className="flex justify-center gap-2">
-                                {otp.map((digit, index) => (
-                                    <input
-                                        key={index}
-                                        ref={(el) => { otpRefs.current[index] = el; }}
-                                        type="text"
-                                        inputMode="numeric"
-                                        maxLength={1}
-                                        value={digit}
-                                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                                        className="w-12 h-14 text-center text-xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-                                    />
-                                ))}
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={verifying}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">{message}</h2>
+                            <p className="text-sm text-[var(--text-muted)]">
+                                You can now sign in to your account.
+                            </p>
+                            <Link
+                                to="/login"
+                                className="mt-4 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-white font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
                             >
-                                {verifying ? 'Verifying...' : 'Verify email'}
-                            </button>
+                                Sign in
+                            </Link>
+                        </div>
+                    )}
 
-                            <div className="flex items-center justify-between text-sm">
-                                <button
-                                    type="button"
-                                    onClick={() => { setStep('prompt'); setOtp(['', '', '', '', '', '']); setError(''); setSuccess(''); }}
-                                    className="font-medium text-gray-500 hover:text-gray-700"
-                                >
-                                    &larr; Back
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleResend}
-                                    className="font-medium text-blue-600 hover:text-blue-500"
-                                >
-                                    Resend code
-                                </button>
+                    {status === 'error' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                                <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
                             </div>
-                        </form>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Verification failed</h2>
+                            <p className="text-sm text-[var(--text-muted)]">{message}</p>
+                            {email && (
+                                <button
+                                    onClick={handleResend}
+                                    disabled={resending}
+                                    className="mt-2 text-sm text-primary hover:text-primary-dark transition-colors disabled:opacity-50"
+                                >
+                                    {resending ? 'Resending...' : 'Resend verification email'}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {status === 'idle' && (
+                        <div className="flex flex-col items-center gap-4 py-8">
+                            <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
+                                <MailCheck className="w-8 h-8 text-primary" />
+                            </div>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                                Check your email
+                            </h2>
+                            <p className="text-sm text-[var(--text-muted)]">
+                                We sent a verification link to <strong className="text-[var(--text-secondary)]">{email}</strong>.
+                                Click the link in the email to verify your account.
+                            </p>
+                            <button
+                                onClick={handleResend}
+                                disabled={resending}
+                                className="mt-2 text-sm text-primary hover:text-primary-dark transition-colors disabled:opacity-50"
+                            >
+                                {resending ? 'Resending...' : 'Resend verification email'}
+                            </button>
+                        </div>
                     )}
                 </div>
+
+                <p className="text-sm text-[var(--text-muted)] mt-6">
+                    <Link to="/login" className="text-primary hover:text-primary-dark font-medium transition-colors">
+                        Back to sign in
+                    </Link>
+                </p>
             </div>
         </div>
     );

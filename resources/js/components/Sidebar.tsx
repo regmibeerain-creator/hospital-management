@@ -16,6 +16,7 @@ import {
     Scan,
     Receipt,
     ShieldCheck,
+    Package,
     BarChart3,
     Globe,
     Settings,
@@ -33,6 +34,7 @@ import {
     Syringe,
     Heart,
     CreditCard,
+    Microscope,
     ChevronLeft,
     ChevronRight,
     X,
@@ -69,7 +71,9 @@ const menuConfig: Record<string, SidebarSection[]> = {
                 { label: 'Staff', icon: IdCard, path: '/dashboard/staff' },
                 { label: 'Pharmacy', icon: Pill, path: '/dashboard/pharmacy' },
                 { label: 'Laboratory', icon: FlaskConical, path: '/dashboard/laboratory' },
+                { label: 'LIS', icon: Microscope, path: '/dashboard/lis' },
                 { label: 'Radiology', icon: Scan, path: '/dashboard/radiology' },
+                { label: 'RIS/PACS', icon: Activity, path: '/dashboard/ris' },
             ],
         },
         {
@@ -77,6 +81,7 @@ const menuConfig: Record<string, SidebarSection[]> = {
             items: [
                 { label: 'Billing', icon: Receipt, path: '/dashboard/billing' },
                 { label: 'Insurance', icon: ShieldCheck, path: '/dashboard/insurance' },
+                { label: 'Inventory', icon: Package, path: '/dashboard/inventory' },
                 { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },
             ],
         },
@@ -220,8 +225,8 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
             {/* Logo */}
             <div className="flex h-16 items-center justify-between px-4 border-b border-[var(--border)] shrink-0">
                 <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-                        <span className="text-white font-bold text-sm">H</span>
+                    <div className="w-10 h-10 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0 overflow-hidden">
+                        <img src="/images/logo.png" alt="Hospital Logo" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     <AnimatePresence>
                         {!collapsed && (
@@ -231,7 +236,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                                 exit={{ opacity: 0, width: 0 }}
                                 className="font-semibold text-[var(--text-primary)] truncate"
                             >
-                                MedCare
+                                Birendranagar Municipal Hospital
                             </motion.span>
                         )}
                     </AnimatePresence>

@@ -1,4 +1,4 @@
-# Hospital Management System
+# Birendranagar Municipal Hospital
 
 An integrated healthcare platform for multi-hospital and multi-branch operations, combining hospital website CMS, HMS, EMR, LIS, RIS/PACS, pharmacy, billing, insurance, HR, inventory, and analytics.
 
